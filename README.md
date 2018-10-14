@@ -5,7 +5,11 @@
 ![af3b45a9d33ebeeb3a9c8615b38498b8](https://i.gyazo.com/af3b45a9d33ebeeb3a9c8615b38498b8.png "af3b45a9d33ebeeb3a9c8615b38498b8")
 
 # Download
-ダウンロード: [v1.0](https://github.com/SimplyRin/Social-Downloader/releases/download/1.0/SocialDownloader-1.0.jar)
+ダウンロード:
+- [SocialDownloader-1.0.jar](https://github.com/SimplyRin/Social-Downloader/releases/download/1.0/SocialDownloader-1.0.jar) (Java)
+- [SocialDownloader-1.0.exe](https://github.com/SimplyRin/Social-Downloader/releases/download/1.0-C%23/SocialDownloader-1.0.exe) (Windows)
+
+**※: ダウンロード、使用は自己責任です。作者は問題が発生した場合でも責任を負いません。**
 
 # Open Source Lisence
 ・**Hyperium | GNU General Public License v3.0**
