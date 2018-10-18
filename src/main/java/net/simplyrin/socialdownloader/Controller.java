@@ -3,6 +3,8 @@ package net.simplyrin.socialdownloader;
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
@@ -52,8 +54,8 @@ public class Controller {
 			this.buildAlert(Alert.AlertType.ERROR, "エラー", "URL を入力する必要があります。", null);
 			return;
 		}
-		if (!(url.contains("nana-music.com") || url.contains("lispon.moe") || url.contains("tiktok.com") || url.contains("tiktokv.com"))) {
-			this.buildAlert(Alert.AlertType.ERROR, "エラー", "対応している URL を入力する必要があります。", "- nana-music.com\n- lispon.moe\n- tiktok.com");
+		if (!(url.contains("nana-music.com") || url.contains("lispon.moe") || url.contains("tiktok.com") || url.contains("tiktokv.com") || url.contains("store.line.me/stickershop/product/"))) {
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "対応している URL を入力する必要があります。", "- nana-music.com\n- lispon.moe\n- tiktok.com\n- store.line.me");
 			return;
 		}
 
@@ -67,6 +69,10 @@ public class Controller {
 
 		if (url.contains("tiktok.com") || url.contains("tiktokv.com")) {
 			this.downloadTikTok(url);
+		}
+
+		if (url.contains("store.line.me/stickershop/product/")) {
+			this.downloadLineSticker(url);
 		}
 	}
 
@@ -211,6 +217,55 @@ public class Controller {
 			e.printStackTrace(stackTrace);
 			this.buildAlert(Alert.AlertType.ERROR, "エラー", "ファイルのダウンロードに失敗しました。", "エラー:\n\n" + stackTrace.getContent());
 		}
+	}
+
+	private void downloadLineSticker(String url) {
+		String content = HttpClient.rawWithAgent(url);
+
+		String title = content.split("<title>")[1].split(" - ")[0];
+		System.out.println("スタンプ名: " + title);
+
+		if (!content.contains("https://stickershop.line-scdn.net/stickershop/v1/sticker/")) {
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "スタンプの解析に失敗しました。", null);
+			return;
+		}
+
+		List<Integer> ids = new ArrayList<>();
+		for (String args : content.split("https://stickershop.line-scdn.net/stickershop/v1/sticker/")) {
+			int id = 0;
+			try {
+				id = Integer.valueOf(args.split("/")[0]).intValue();
+			} catch (Exception e) {
+			}
+
+			if (id != 0) {
+				System.out.println("ID: " + id);
+				ids.add(id);
+			}
+		}
+
+		File directory = this.openDirectoryChooser("保存場所を選択してダウンロード");
+		if (directory == null) {
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "保存場所の取得に失敗しました", null);
+			return;
+		}
+
+		directory = new File(directory, title);
+		if (!directory.exists()) {
+			directory.mkdir();
+		}
+
+		for (Integer integer : ids) {
+			try {
+				URL _Url = new URL("https://stickershop.line-scdn.net/stickershop/v1/sticker/" + integer.intValue() + "/ANDROID/sticker.png");
+				FileUtils.copyURLToFile(_Url, new File(directory, integer.intValue() + ".png"));
+				System.out.println(integer.intValue() + " のダウンロードに成功しました。");
+			} catch (Exception e) {
+				System.out.println(integer.intValue() + " のダウンロードに失敗しました。");
+			}
+		}
+
+		this.buildAlert(Alert.AlertType.INFORMATION, "完了", "ファイルのダウンロードが完了しました。", "フォルダ名: " + title);
 	}
 
 	private void buildAlert(Alert.AlertType alertyType, String title, String headerText, String content) {
