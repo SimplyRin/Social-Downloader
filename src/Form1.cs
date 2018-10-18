@@ -1,8 +1,28 @@
-﻿using System;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Windows.Forms;
 
+/**
+ * Created by SimplyRin on 2018/10/14.
+ * 
+ * Copyright (C) 2018 SimplyRin
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 namespace SocialDownloader {
 
     public partial class Form1 : Form {
@@ -25,11 +45,11 @@ namespace SocialDownloader {
                 this.buildAlert(MessageBoxIcon.Error, "エラー", "URL を入力する必要があります。");
                 return;
             }
-            if (!(url.Contains("nana-music.com") || url.Contains("lispon.moe") || url.Contains("tiktok.com") || url.Contains("tiktokv.com"))) {
-                this.buildAlert(MessageBoxIcon.Error, "エラー", "対応している URL を入力する必要があります。\n\n- nana-music.com\n- lispon.moe\n- tiktok.com");
+            if (!(url.Contains("nana-music.com") || url.Contains("lispon.moe") || url.Contains("tiktok.com") || url.Contains("tiktokv.com") || url.Contains("store.line.me/stickershop/product/"))) {
+                this.buildAlert(MessageBoxIcon.Error, "エラー", "対応している URL を入力する必要があります。\n\n- nana-music.com\n- lispon.moe\n- tiktok.com\n- store.line.me");
                 return;
             }
-            
+
             if (url.Contains("nana-music.com")) {
                 this.downloadNana(url);
             }
@@ -40,6 +60,10 @@ namespace SocialDownloader {
 
             if (url.Contains("tiktok.com") || url.Contains("tiktokv.com")) {
                 this.downloadTikTok(url);
+            }
+
+            if (url.Contains("store.line.me/stickershop/product/")) {
+                this.downloadLineSticker(url);
             }
         }
 
@@ -113,7 +137,7 @@ namespace SocialDownloader {
                 this.buildAlert(MessageBoxIcon.Error, "エラー", "URL の解析に失敗しました。");
                 return;
             }
-
+            
             String directory = this.openDirectoryChooser();
             if (directory == null) {
                 this.buildAlert(MessageBoxIcon.Error, "エラー", "保存場所の取得に失敗しました");
@@ -156,6 +180,47 @@ namespace SocialDownloader {
             }
         }
 
+        private void downloadLineSticker(String url) {
+            String content = HttpClient.rawWithAgent(url);
+
+            String title = this.split(content, " - ")[0];
+            title = this.split(title, "<title>")[1];
+
+            if (!content.Contains("https://stickershop.line-scdn.net/stickershop/v1/sticker/")) {
+                this.buildAlert(MessageBoxIcon.Error, "エラー", "スタンプの解析に失敗しました。");
+                return;
+            }
+
+            List<String> ids = new List<String>();
+            foreach (String args in this.split(content, "https://stickershop.line-scdn.net/stickershop/v1/sticker/")) {
+                String id = "0";
+                try {
+                    id = this.split(args, "/")[0];
+                } catch (Exception) {
+                }
+                
+                if (!id.Equals("0")) {
+                    Console.WriteLine("ID: " + id);
+                    ids.Add(this.split(args, "/")[0]);
+                }
+            }
+
+            String directory = this.openDirectoryChooser();
+            if (directory == null) {
+                this.buildAlert(MessageBoxIcon.Error, "エラー", "保存場所の取得に失敗しました");
+                return;
+            }
+            directory += "\\" + title;
+            Directory.CreateDirectory(directory);
+
+            foreach (String id in ids) {
+                url = "https://stickershop.line-scdn.net/stickershop/v1/sticker/" + id + "/ANDROID/sticker.png";
+                this.copyURLtoFile(url, directory + "\\" + id + ".png");
+            }
+
+            this.buildAlert(MessageBoxIcon.Information, "完了", "ファイルのダウンロードが完了しました。\n\nフォルダ名: " + title);
+        }
+
         private String[] split(String args, String split) {
             String[] a1 = { split };
             return args.Split(a1, StringSplitOptions.None);
@@ -167,9 +232,10 @@ namespace SocialDownloader {
         }
 
         private String openDirectoryChooser() {
-            var dialogResult = new FolderBrowserDialog();
-            if (dialogResult.ShowDialog() == DialogResult.OK) {
-                return dialogResult.SelectedPath;
+            CommonOpenFileDialog commonOpenFileDialog = new CommonOpenFileDialog("保存場所を選択してダウンロード");
+            commonOpenFileDialog.IsFolderPicker = true;
+            if (commonOpenFileDialog.ShowDialog() == CommonFileDialogResult.Ok) {
+                return commonOpenFileDialog.FileName;
             } else {
                 return null;
             }
@@ -177,18 +243,17 @@ namespace SocialDownloader {
 
         private bool copyURLtoFile(String url, String path) {
             WebClient webClient = new WebClient();
+            webClient.Headers.Add("User-Agent", "Mozilla/5.0");
             try {
                 webClient.DownloadFile(url, path);
                 webClient.Dispose();
                 return true;
             } catch (Exception e) {
-                String stackTrace = e.StackTrace;
                 Console.WriteLine("URL: " + url + "\nPath: " + path);
-                Console.WriteLine("Error:\n" + stackTrace);
+                Console.WriteLine("Error: " + e.Message);
                 return false;
             }
         }
-
     }
 
     public class HttpClient {
@@ -200,7 +265,7 @@ namespace SocialDownloader {
         public static String rawWithAgent(String url, String userAgent) {
             Console.WriteLine("Connecting to " + url + ".");
 
-            if (!url.StartsWith("http://")) {
+            if (!url.StartsWith("http://") && !url.StartsWith("https://")) {
                 url = "http://" + url;
             }
 
