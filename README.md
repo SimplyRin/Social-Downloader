@@ -5,14 +5,14 @@
 - nana-music.com
 - lispon.moe
 - tiktok.com
+- store.line.me
 
 # Screenshot
 ![af3b45a9d33ebeeb3a9c8615b38498b8](https://i.gyazo.com/af3b45a9d33ebeeb3a9c8615b38498b8.png "af3b45a9d33ebeeb3a9c8615b38498b8")
 
 # Download
 ダウンロード:
-- [SocialDownloader-1.0.jar](https://github.com/SimplyRin/Social-Downloader/releases/download/1.0/SocialDownloader-1.0.jar) (Java)
-- [SocialDownloader-1.0.exe](https://github.com/SimplyRin/Social-Downloader/releases/download/1.0-C%23/SocialDownloader-1.0.exe) (Windows)
+- [SocialDownloader-1.1.jar](https://github.com/SimplyRin/Social-Downloader/releases/download/1.1/SocialDownloader-1.1.jar) (Java)
 
 **※: ダウンロード、使用は自己責任です。作者は問題が発生した場合でも責任を負いません。**
 
