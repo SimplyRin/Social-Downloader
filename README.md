@@ -14,6 +14,7 @@
 # Download
 ダウンロード:
 - [SocialDownloader-1.1.jar](https://github.com/SimplyRin/Social-Downloader/releases/download/1.1/SocialDownloader-1.1.jar) (Java)
+- [SocialDownloader-1.1.zip](https://github.com/SimplyRin/Social-Downloader/releases/download/1.1-C%23/SocialDownloader-1.1.zip) (Windows)
 
 **※: ダウンロード、使用は自己責任です。作者は問題が発生した場合でも責任を負いません。**
 
