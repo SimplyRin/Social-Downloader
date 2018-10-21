@@ -13,8 +13,9 @@
 
 # Download
 ダウンロード:
-- [SocialDownloader-1.1.jar](https://github.com/SimplyRin/Social-Downloader/releases/download/1.1/SocialDownloader-1.1.jar) (Java)
-- [SocialDownloader-1.1.zip](https://github.com/SimplyRin/Social-Downloader/releases/download/1.1-C%23/SocialDownloader-1.1.zip) (Windows)
+- [SocialDownloader-1.2.jar](https://github.com/SimplyRin/Social-Downloader/releases/download/1.2/SocialDownloader-1.2.jar) (Java)
+- [SocialDownloader-1.2.exe](https://github.com/SimplyRin/Social-Downloader/releases/download/1.2/SocialDownloader-1.2.exe) (Windows)
+- [SocialDownloader-1.2.apk](https://github.com/SimplyRin/Social-Downloader/releases/download/1.2/SocialDownloader-1.2.apk) (Android)
 
 **※: ダウンロード、使用は自己責任です。作者は問題が発生した場合でも責任を負いません。**
 
