@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -47,6 +48,13 @@ public class Controller {
 	@FXML
 	private TextField textField;
 
+	private String NANA_MUSIC = "nana-music.com";
+	private String LISPON = "lispon.moe";
+	private String TIKTOK = "tiktok.com";
+	private String TIKTOKV = "tiktokv.com";
+	private String LINE = "store.line.me/stickershop/product/";
+	private String TWITCH_CLIP = "clips.twitch.tv/";
+
 	@FXML
 	private void onAction(ActionEvent event) {
 		String url = this.textField.getText();
@@ -54,8 +62,13 @@ public class Controller {
 			this.buildAlert(Alert.AlertType.ERROR, "エラー", "URL を入力する必要があります。", null);
 			return;
 		}
-		if (!(url.contains("nana-music.com") || url.contains("lispon.moe") || url.contains("tiktok.com") || url.contains("tiktokv.com") || url.contains("store.line.me/stickershop/product/"))) {
-			this.buildAlert(Alert.AlertType.ERROR, "エラー", "対応している URL を入力する必要があります。", "- nana-music.com\n- lispon.moe\n- tiktok.com\n- store.line.me");
+		if (!(url.contains(this.NANA_MUSIC) ||
+				url.contains(this.LISPON) ||
+				url.contains(this.TIKTOK) ||
+				url.contains(this.TIKTOKV) ||
+				url.contains(this.LINE) ||
+				url.contains(this.TWITCH_CLIP))) {
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "対応している URL を入力する必要があります。", "- nana-music.com\n- lispon.moe\n- tiktok.com\n- store.line.me\n- clips.twitch.tv");
 			return;
 		}
 
@@ -73,6 +86,10 @@ public class Controller {
 
 		if (url.contains("store.line.me/stickershop/product/")) {
 			this.downloadLineSticker(url);
+		}
+
+		if (url.contains("clips.twitch.tv/")) {
+			this.downloadTwitchClip(url);
 		}
 	}
 
@@ -266,6 +283,40 @@ public class Controller {
 		}
 
 		this.buildAlert(Alert.AlertType.INFORMATION, "完了", "ファイルのダウンロードが完了しました。", "フォルダ名: " + title);
+	}
+
+	private void downloadTwitchClip(String url) {
+		if (url.contains(Pattern.quote("?"))) {
+			url = url.split(Pattern.quote("?"))[0];
+		}
+
+		String clipId = url.split(Pattern.quote("clips.twitch.tv/"))[1];
+
+		url = "https://clips.twitch.tv/api/v2/clips/" + clipId + "/status";
+
+		String content = HttpClient.rawWithAgent(url);
+
+		JsonArray jsonArray = new JsonParser().parse(content).getAsJsonObject().get("quality_options").getAsJsonArray();
+		JsonObject jsonObject = jsonArray.get(0).getAsJsonObject();
+
+		url = jsonObject.get("source").getAsString();
+
+		File directory = this.openDirectoryChooser("保存場所を選択してダウンロード");
+		if (directory == null) {
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "保存場所の取得に失敗しました", null);
+			return;
+		}
+
+		File file = new File(directory, clipId + ".mp4");
+		try {
+			FileUtils.copyURLToFile(new URL(url), file);
+			System.out.println("ダウンロードが完了しました！");
+			this.buildAlert(Alert.AlertType.INFORMATION, "完了", "ファイルのダウンロードが完了しました。", "ファイル名: " + file.getName());
+		} catch (Exception e) {
+			StackTrace stackTrace = new StackTrace();
+			e.printStackTrace(stackTrace);
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "ファイルのダウンロードに失敗しました。", "エラー:\n\n" + stackTrace.getContent());
+		}
 	}
 
 	private void buildAlert(Alert.AlertType alertyType, String title, String headerText, String content) {

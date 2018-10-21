@@ -6,6 +6,7 @@
 - lispon.moe
 - tiktok.com
 - store.line.me
+- clips.twitch.tv
 
 # Screenshot
 ![af3b45a9d33ebeeb3a9c8615b38498b8](https://i.gyazo.com/af3b45a9d33ebeeb3a9c8615b38498b8.png "af3b45a9d33ebeeb3a9c8615b38498b8")
