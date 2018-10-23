@@ -34,6 +34,12 @@ namespace SocialDownloader {
             this.MinimumSize = this.Size;
 
             this.MaximizeBox = false;
+
+            String staticUrl = "https://static.simplyrin.net/Microsoft.WindowsAPICodePack/";
+            this.copyURLtoFile(staticUrl + "Microsoft.WindowsAPICodePack.dll", "Microsoft.WindowsAPICodePack.dll");
+            this.copyURLtoFile(staticUrl + "Microsoft.WindowsAPICodePack.pdb", "Microsoft.WindowsAPICodePack.pdb");
+            this.copyURLtoFile(staticUrl + "Microsoft.WindowsAPICodePack.Shell.dll", "Microsoft.WindowsAPICodePack.Shell.dll");
+            this.copyURLtoFile(staticUrl + "Microsoft.WindowsAPICodePack.Shell.pdb", "Microsoft.WindowsAPICodePack.Shell.pdb");
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e) {
@@ -45,7 +51,12 @@ namespace SocialDownloader {
                 this.buildAlert(MessageBoxIcon.Error, "エラー", "URL を入力する必要があります。");
                 return;
             }
-            if (!(url.Contains("nana-music.com") || url.Contains("lispon.moe") || url.Contains("tiktok.com") || url.Contains("tiktokv.com") || url.Contains("store.line.me/stickershop/product/"))) {
+            if (!(url.Contains("nana-music.com") || 
+                url.Contains("lispon.moe") || 
+                url.Contains("tiktok.com") || 
+                url.Contains("tiktokv.com") || 
+                url.Contains("store.line.me/stickershop/product/") ||
+                url.Contains("clips.twitch.tv/"))) {
                 this.buildAlert(MessageBoxIcon.Error, "エラー", "対応している URL を入力する必要があります。\n\n- nana-music.com\n- lispon.moe\n- tiktok.com\n- store.line.me");
                 return;
             }
@@ -64,6 +75,10 @@ namespace SocialDownloader {
 
             if (url.Contains("store.line.me/stickershop/product/")) {
                 this.downloadLineSticker(url);
+            }
+
+            if (url.Contains("clips.twitch.tv/")) {
+                this.downloadTwitchClip(url);
             }
         }
 
@@ -183,7 +198,7 @@ namespace SocialDownloader {
         private void downloadLineSticker(String url) {
             String content = HttpClient.rawWithAgent(url);
 
-            String title = this.split(content, " - ")[0];
+            String title = this.split(content, " - LINE スタンプ | LINE STORE")[0];
             title = this.split(title, "<title>")[1];
 
             if (!content.Contains("https://stickershop.line-scdn.net/stickershop/v1/sticker/")) {
@@ -221,6 +236,34 @@ namespace SocialDownloader {
             this.buildAlert(MessageBoxIcon.Information, "完了", "ファイルのダウンロードが完了しました。\n\nフォルダ名: " + title);
         }
 
+        private void downloadTwitchClip(String url) {
+            if (url.Contains("?")) {
+                url = this.split(url, "?")[0];
+            }
+
+            String clipId = this.split(url, "clips.twitch.tv/")[1];
+
+            url = "https://clips.twitch.tv/api/v2/clips/" + clipId + "/status";
+
+            String content = HttpClient.rawWithAgent(url);
+
+            url = this.split(content, "source\":\"")[1];
+            url = this.split(url, "\",\"")[0];
+
+            String directory = this.openDirectoryChooser();
+            if (directory == null) {
+                this.buildAlert(MessageBoxIcon.Error, "エラー", "保存場所の取得に失敗しました");
+                return;
+            }
+
+            bool response = this.copyURLtoFile(url, directory + "\\" + clipId + ".mp4");
+            if (response) {
+                this.buildAlert(MessageBoxIcon.Information, "完了", "ファイルのダウンロードが完了しました。\n\nファイル名: " + clipId + ".mp4");
+            } else {
+                this.buildAlert(MessageBoxIcon.Information, "エラー", "ファイルのダウンロードに失敗しました。");
+            }
+        }
+
         private String[] split(String args, String split) {
             String[] a1 = { split };
             return args.Split(a1, StringSplitOptions.None);
@@ -254,6 +297,7 @@ namespace SocialDownloader {
                 return false;
             }
         }
+
     }
 
     public class HttpClient {
@@ -282,4 +326,5 @@ namespace SocialDownloader {
         }
 
     }
+
 }
