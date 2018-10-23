@@ -72,23 +72,23 @@ public class Controller {
 			return;
 		}
 
-		if (url.contains("nana-music.com")) {
+		if (url.contains(this.NANA_MUSIC)) {
 			this.downloadNana(url);
 		}
 
-		if (url.contains("lispon.moe")) {
+		if (url.contains(this.LISPON)) {
 			this.downloadLispon(url);
 		}
 
-		if (url.contains("tiktok.com") || url.contains("tiktokv.com")) {
+		if (url.contains(this.TIKTOK) || url.contains(this.TIKTOKV)) {
 			this.downloadTikTok(url);
 		}
 
-		if (url.contains("store.line.me/stickershop/product/")) {
+		if (url.contains(this.LINE)) {
 			this.downloadLineSticker(url);
 		}
 
-		if (url.contains("clips.twitch.tv/")) {
+		if (url.contains(this.TWITCH_CLIP)) {
 			this.downloadTwitchClip(url);
 		}
 	}
@@ -239,7 +239,7 @@ public class Controller {
 	private void downloadLineSticker(String url) {
 		String content = HttpClient.rawWithAgent(url);
 
-		String title = content.split("<title>")[1].split(" - ")[0];
+		String title = content.split(" - LINE スタンプ | LINE STORE")[0].split("<title>")[1];
 		System.out.println("スタンプ名: " + title);
 
 		if (!content.contains("https://stickershop.line-scdn.net/stickershop/v1/sticker/")) {
