@@ -1,0 +1,8 @@
+
+.classpath
+.project
+.settings
+src/main/test
+target
+*.txt
+*.json
