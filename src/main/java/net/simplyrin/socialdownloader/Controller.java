@@ -13,7 +13,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import club.sk1er.utils.HttpClient;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -21,6 +20,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import net.simplyrin.httpclient.HttpClient;
 
 /**
  * Created by SimplyRin on 2018/10/11.
@@ -48,53 +48,57 @@ public class Controller {
 	@FXML
 	private TextField textField;
 
-	private String NANA_MUSIC = "nana-music.com";
-	private String LISPON = "lispon.moe";
-	private String TIKTOK = "tiktok.com";
-	private String TIKTOKV = "tiktokv.com";
-	private String LINE = "store.line.me/stickershop/product/";
-	private String TWITCH_CLIP = "clips.twitch.tv/";
+	private static final String NANA_MUSIC = "nana-music.com";
+	private static final String LISPON = "lispon.moe";
+	private static final String TIKTOK = "tiktok.com";
+	private static final String TIKTOKV = "tiktokv.com";
+	private static final String LINE = "store.line.me/stickershop/product";
+	private static final String TWITCH_CLIP = "clips.twitch.tv";
+	private static final String SPOON = "spooncast.net";
 
 	@FXML
 	private void onAction(ActionEvent event) {
-		String url = this.textField.getText();
+		String url = this.textField.getText().trim();
 		if (url.equals("")) {
 			this.buildAlert(Alert.AlertType.ERROR, "エラー", "URL を入力する必要があります。", null);
 			return;
 		}
-		if (!(url.contains(this.NANA_MUSIC) ||
-				url.contains(this.LISPON) ||
-				url.contains(this.TIKTOK) ||
-				url.contains(this.TIKTOKV) ||
-				url.contains(this.LINE) ||
-				url.contains(this.TWITCH_CLIP))) {
-			this.buildAlert(Alert.AlertType.ERROR, "エラー", "対応している URL を入力する必要があります。", "- nana-music.com\n- lispon.moe\n- tiktok.com\n- store.line.me\n- clips.twitch.tv");
+
+		if (url.contains(NANA_MUSIC)) {
+			this.downloadNana(url);
 			return;
 		}
 
-		if (url.contains(this.NANA_MUSIC)) {
-			this.downloadNana(url);
-		}
-
-		if (url.contains(this.LISPON)) {
+		if (url.contains(LISPON)) {
 			this.downloadLispon(url);
+			return;
 		}
 
-		if (url.contains(this.TIKTOK) || url.contains(this.TIKTOKV)) {
+		if (url.contains(TIKTOK) || url.contains(TIKTOKV)) {
 			this.downloadTikTok(url);
+			return;
 		}
 
-		if (url.contains(this.LINE)) {
+		if (url.contains(LINE)) {
 			this.downloadLineSticker(url);
+			return;
 		}
 
-		if (url.contains(this.TWITCH_CLIP)) {
+		if (url.contains(TWITCH_CLIP)) {
 			this.downloadTwitchClip(url);
+			return;
 		}
+
+		if (url.contains(SPOON)) {
+			this.downloadSpoon(url);
+			return;
+		}
+
+		this.buildAlert(Alert.AlertType.ERROR, "エラー", "このサービスは現在サポートされていません。", null);
 	}
 
 	private void downloadNana(String url) {
-		String content = HttpClient.rawWithAgent(url);
+		String content = HttpClient.fetch(url);
 		if (!content.contains("build_sound_url")) {
 			this.buildAlert(Alert.AlertType.ERROR, "エラー", "ファイルの検出に失敗しました。", null);
 			return;
@@ -148,7 +152,7 @@ public class Controller {
 		System.out.println("Detected qaId: " + qaId);
 		url = "http://lispon.moe/lispon/vaqa/getQAInfo?qaId=" + qaId;
 
-		String result = HttpClient.rawWithAgent(url);
+		String result = HttpClient.fetch(url);
 
 		JsonObject jsonObject;
 		try {
@@ -191,12 +195,12 @@ public class Controller {
 	}
 
 	private void downloadTikTok(String url) {
-		String content = HttpClient.rawWithAgent(url);
+		String content = HttpClient.fetch(url);
 		if(content.contains("Redirecting")) {
 			System.out.println("Redirecting to target link...");
 
 			String reconnectUrl = content.split("<a href=\"")[1].split("&amp;utm_source=copy_link")[0];
-			content = HttpClient.rawWithAgent(reconnectUrl);
+			content = HttpClient.fetch(reconnectUrl);
 		}
 
 		content = content.replace("\n", "");
@@ -208,7 +212,7 @@ public class Controller {
 		videoId = videoId.replace("\\u0026", "");
 
 		try {
-			HttpURLConnection connection = HttpClient.getHttpURLConnection("https://api.tiktokv.com/aweme/v1/playwm/?video_id=" + videoId);
+			HttpURLConnection connection = HttpClient.getHttpURLConnection("https://api.tiktokv.com/aweme/v1/playwm/?video_id=" + videoId, null, null);
 			url = connection.getHeaderField("Location");
 			if(url == null) {
 				new Exception();
@@ -237,7 +241,7 @@ public class Controller {
 	}
 
 	private void downloadLineSticker(String url) {
-		String content = HttpClient.rawWithAgent(url);
+		String content = HttpClient.fetch(url);
 
 		String title = content.split(" - LINE スタンプ | LINE STORE")[0].split("<title>")[1];
 		System.out.println("スタンプ名: " + title);
@@ -294,7 +298,7 @@ public class Controller {
 
 		url = "https://clips.twitch.tv/api/v2/clips/" + clipId + "/status";
 
-		String content = HttpClient.rawWithAgent(url);
+		String content = HttpClient.fetch(url);
 
 		JsonArray jsonArray = new JsonParser().parse(content).getAsJsonObject().get("quality_options").getAsJsonArray();
 		JsonObject jsonObject = jsonArray.get(0).getAsJsonObject();
@@ -311,6 +315,57 @@ public class Controller {
 		try {
 			FileUtils.copyURLToFile(new URL(url), file);
 			System.out.println("ダウンロードが完了しました！");
+			this.buildAlert(Alert.AlertType.INFORMATION, "完了", "ファイルのダウンロードが完了しました。", "ファイル名: " + file.getName());
+		} catch (Exception e) {
+			StackTrace stackTrace = new StackTrace();
+			e.printStackTrace(stackTrace);
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "ファイルのダウンロードに失敗しました。", "エラー:\n\n" + stackTrace.getContent());
+		}
+	}
+
+	private void downloadSpoon(String url) {
+		String id = "";
+		try {
+			id = url.split("cast")[2].replace("/", "").trim();
+		} catch (Exception e) {
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "URL の解析に失敗しました。", "- " + id);
+			return;
+		}
+
+		System.out.println("Detected ID: " + id);
+		url = "https://jp-api.spooncast.net/casts/" + id + "/";
+
+		JsonObject jsonObject = HttpClient.getAsJsonObject(url);
+		try {
+			jsonObject = jsonObject.get("results").getAsJsonArray().get(0).getAsJsonObject();
+		} catch (Exception e) {
+			return;
+		}
+
+		String title = jsonObject.get("title").getAsString();
+		try {
+			title += " - " + jsonObject.get("author").getAsJsonObject().get("nickname").getAsString();
+		} catch (Exception e) {
+		}
+
+		String m4a;
+		try {
+			m4a = jsonObject.get("voice_url").getAsString();
+		} catch (Exception e) {
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "URL の解析に失敗しました。", null);
+			return;
+		}
+
+		File directory = this.openDirectoryChooser("保存場所を選択してダウンロード");
+		if (directory == null) {
+			this.buildAlert(Alert.AlertType.ERROR, "エラー", "保存場所の取得に失敗しました", null);
+			return;
+		}
+
+		File file = new File(directory, title + ".m4a");
+		try {
+			FileUtils.copyURLToFile(new URL(m4a), file);
+			System.out.println("ダウンロードが完了しました: " + file.getName());
 			this.buildAlert(Alert.AlertType.INFORMATION, "完了", "ファイルのダウンロードが完了しました。", "ファイル名: " + file.getName());
 		} catch (Exception e) {
 			StackTrace stackTrace = new StackTrace();

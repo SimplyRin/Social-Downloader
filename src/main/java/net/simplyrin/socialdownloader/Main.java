@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import net.simplyrin.socialdownloader.utils.Version;
 
 /**
  * Created by SimplyRin on 2018/10/11.
@@ -46,7 +47,7 @@ public class Main extends Application {
 		} catch (Exception e) {
 		}
 
-		stage.setTitle("Social Downloader");
+		stage.setTitle("Social Downloader v" + Version.POMVERSION);
 		stage.sizeToScene();
 		stage.setResizable(false);
 		stage.setScene(new Scene(parent, 300, 110));
